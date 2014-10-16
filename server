@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import socket
-import sys
 
-host = '0.0.0.0'
+host = '0.0.0.0' # Будем слушать все возможные адреса
 port = 1234
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Создаем сокет
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((host, port))
-s.listen(999)
+s.listen(999) # Кол. подключений
 sock, addr = s.accept()
 while True:
     msg = sock.recv(1024)
-    if msg == "exit":
+    if msg == "exit": # Задаем ключ для выхода
         sock.sendall("bye")
         break
     elif msg:
         sock.sendall(msg)
-sock.close()
+sock.close()  # Закрываем сокет
