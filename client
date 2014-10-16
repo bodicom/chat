@@ -1,0 +1,105 @@
+# -*- coding: utf-8 -*-
+
+from time import gmtime, strftime
+import socket
+import smtplib
+
+def register():
+    db = {}
+    user = input("Введите логин: ")
+    user_pass = input("Введите пароль: ")
+    user_email = input("Введите вашу почту: ")
+    db[user] = user_pass+'\n'
+    db['email'] = user_email+'\n'
+    f = open(r'auth.txt', 'a')
+    f.write(str(db))
+    f.close()
+    server = smtplib.SMTP("smtp.mail.ru",587)
+    to = user_email
+    mail_user = 'newchat@mail.ua'
+    mail_pwd = 'zxcasdqwe123'
+    server.starttls()
+    server.login(mail_user, mail_pwd)
+    header = 'To:' + to + '\n' + 'From: ' + mail_user + '\n' + 'Subject: testing \n'
+    msg = header + '\n' + 'Перейдите поссылке для доступа к чату: <a href="127.0.0.1:8080"' + '\n'
+    server.sendmail(mail_user, to, msg)
+    server.close()
+    print ('Вам отправлено письмо. \nПроверьте вашу почту!')
+
+def select_chat():
+    print('Все каналы:')
+    global select2
+    f = open('chanal_list.txt', 'r')
+    f1=print(f.read())
+    select2 = input('Выберите канал ')
+    if select2 == f1:
+        print('Нет такого канала')
+        return select_chat()
+    global nick
+    print('Добро пожаловать в канал ' + select2)
+    f.close()
+    nick = input('Введите nick: ')
+    f = open(select2+'.txt', 'r')
+    print(f.read())
+    f.close()
+    print('Для выхода к списку каналов введите "exit"')
+    return start_chat()
+
+
+def start_chat():
+    s = socket.socket()
+    s.connect(('localhost', 1234))
+    loctime = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+    while True:
+        msg = input(">> ")
+        s.sendall(msg.encode('utf-8'))
+        result = s.recv(1024).decode('utf-8')
+        print(result)
+        if msg == "exit":
+            return select_chat()
+        elif msg:
+            f = open(select2+'.txt', 'a')
+            f.write('"'+loctime+'" '+nick+': '+msg+'\n')
+            f.close()
+    s.close()
+
+def create_chanal():
+    global new_connect
+    chanal_name = {}
+    ch = input('Назовите канал ')
+    chanal_name=ch
+    ch = open(ch + '.txt', 'a')
+    ch.write(chanal_name)
+    ch.close()
+    ch1 = open('chanal_list.txt', 'a')
+    s = str(ch1)
+    ch1.write(chanal_name+'\n')
+    ch1.close()
+    return select_chat()
+
+def find_chanal():
+    print('\nДля перехода к списку каналов наберите "spisok"\n')
+    find = input('Введите название канала для поиска в списке: \n')
+    f = open('chanal_list.txt', 'r')
+    txt = f.read()
+    if find in txt:
+        print ('НАЙДЕН', find, 'канал'), main_start()
+    elif find == 'spisok':
+        return select_chat()
+    else:
+        print('\nНет такого канала. Попробуйте ещё раз... \n')
+    return find_chanal()
+
+def main_start():
+    print('Выберите: \n 1. Создать новый канал \n 2. Перейти к выбору каналов \n 3. Поиск канала')
+    select = input('\n' + 'Сделайте ваш выбор ')
+    if select == '1':
+        create_chanal()
+    elif select == '3':
+        find_chanal()
+    elif select == '2':
+        select_chat()
+    else:
+        print('Что то не то')
+
+main_start()
