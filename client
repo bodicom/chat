@@ -4,50 +4,49 @@ from time import gmtime, strftime
 import socket
 import smtplib
 
-def register():
-    db = {}
+def register(): # Функция регистрации
+    db = {} # Создаем пустой словарь
     user = input("Введите логин: ")
     user_pass = input("Введите пароль: ")
     user_email = input("Введите вашу почту: ")
-    db[user] = user_pass+'\n'
-    db['email'] = user_email+'\n'
-    f = open(r'auth.txt', 'a')
+    db[user] = user_pass+'\n' # Добавляем в словарь ключ - юзер, значение - пароль
+    db['email'] = user_email+'\n' # Добавляем почту туда же
+    f = open(r'auth.txt', 'a') # Открываем(создаем) файл куда будем писать авторизационные данные
     f.write(str(db))
     f.close()
-    server = smtplib.SMTP("smtp.mail.ru",587)
+    server = smtplib.SMTP("smtp.mail.ru",587) # Указываем с какого SMTP сервера будем отправлять данные
     to = user_email
     mail_user = 'newchat@mail.ua'
     mail_pwd = 'zxcasdqwe123'
-    server.starttls()
+    server.starttls() # Открываем tls на почтовом сервисе
     server.login(mail_user, mail_pwd)
     header = 'To:' + to + '\n' + 'From: ' + mail_user + '\n' + 'Subject: testing \n'
-    msg = header + '\n' + 'Перейдите поссылке для доступа к чату: <a href="127.0.0.1:8080"' + '\n'
-    server.sendmail(mail_user, to, msg)
-    server.close()
+    msg = header + '\n' + 'Перейдите поссылке для доступа к чату: <a href="127.0.0.1:8080"' + '\n'  # пересылаемое сообщение
+    server.sendmail(mail_user, to, msg) # Отправляем сообщение
+    server.close() # Закрываем соединение
     print ('Вам отправлено письмо. \nПроверьте вашу почту!')
 
-def select_chat():
+def select_chat():  # Функция выбор канала
     print('Все каналы:')
-    global select2
-    f = open('chanal_list.txt', 'r')
-    f1=print(f.read())
-    select2 = input('Выберите канал ')
-    global nick
+    global select2, nick  # Объявляем глобальной для доступа из других функций
+    f = open('chanal_list.txt', 'r') #  Открываем файл со списком каналов
+    print(f.read())
+    select2 = input('Выберите канал ') # Предлагаем ввести название канала для перехода в него
     print('Добро пожаловать в канал ' + select2)
     f.close()
     nick = input('Введите nick: ')
-    f = open(select2+'.txt', 'r')
+    f = open(select2+'.txt', 'r') # Открываем файл для просмотра переписки
     print(f.read())
     f.close()
     print('Для выхода к списку каналов введите "exit"')
     return start_chat()
 
 
-def start_chat():
-    s = socket.socket()
-    s.connect(('localhost', 1234))
-    loctime = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-    while True:
+def start_chat(): # Начинаем переписку(Server.py должен быть запущен)
+    s = socket.socket() # Создаю сокет
+    s.connect(('localhost', 1234)) # подключабсь к хосту
+    loctime = strftime("%Y-%m-%d %H:%M:%S", gmtime()) # функция времени будет писать в файл когда написано сообщение
+    while True: # Создаем цикл, который прервется если написать ключ
         msg = input(">> ")
         s.sendall(msg.encode('utf-8'))
         result = s.recv(1024).decode('utf-8')
@@ -58,10 +57,9 @@ def start_chat():
             f = open(select2+'.txt', 'a')
             f.write('"'+loctime+'" '+nick+': '+msg+'\n')
             f.close()
-    s.close()
+    s.close() # Закрываем сокет
 
-def create_chanal():
-    global new_connect
+def create_chanal(): # Функция создания канала
     chanal_name = {}
     ch = input('Назовите канал ')
     chanal_name=ch
@@ -69,12 +67,11 @@ def create_chanal():
     ch.write(chanal_name)
     ch.close()
     ch1 = open('chanal_list.txt', 'a')
-    s = str(ch1)
     ch1.write(chanal_name+'\n')
     ch1.close()
     return select_chat()
 
-def find_chanal():
+def find_chanal(): # Функция поиска каналов
     print('\nДля перехода к списку каналов наберите "spisok"\n')
     find = input('Введите название канала для поиска в списке: \n')
     f = open('chanal_list.txt', 'r')
@@ -87,7 +84,7 @@ def find_chanal():
         print('\nНет такого канала. Попробуйте ещё раз... \n')
     return find_chanal()
 
-def main_start():
+def main_start(): # Стартуем с этой функции
     print('Выберите: \n 1. Создать новый канал \n 2. Перейти к выбору каналов \n 3. Поиск канала')
     select = input('\n' + 'Сделайте ваш выбор ')
     if select == '1':
