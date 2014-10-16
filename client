@@ -32,9 +32,6 @@ def select_chat():
     f = open('chanal_list.txt', 'r')
     f1=print(f.read())
     select2 = input('Выберите канал ')
-    if select2 == f1:
-        print('Нет такого канала')
-        return select_chat()
     global nick
     print('Добро пожаловать в канал ' + select2)
     f.close()
